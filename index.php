@@ -1,3 +1,6 @@
 <?php
-   echo "this is my heroku test sanjay";
+   for($i=0;$i<=5;$i++)
+   {
+      echo $i. ' sanjay'.'<br/>';
+   }
 ?>
