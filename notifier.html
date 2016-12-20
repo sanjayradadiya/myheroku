@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Real time dynamic notification service</title>
+	<!-- AngularJS -->
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular.min.js"></script>
+	<!-- Firebase -->
+	<script src="https://cdn.firebase.com/js/client/2.2.4/firebase.js"></script>
+	<!-- AngularFire -->
+	<script src="https://cdn.firebase.com/libs/angularfire/1.2.0/angularfire.min.js"></script>
+
+	<script src="js/angular-desktop-notification.js"></script>
+</head>
+<body>
+    <div ng-app="myapp" ng-controller="myctrl">
+        
+        <input type="text" ng-model="newMessageText"/>
+        <button ng-click="addMessage()">Add</button>
+
+    	{{messages}}
+
+    	<ul>
+	        <li ng-repeat="message in messages">{{ message.text }}: {{ message.$id }}</li>
+	    </ul>
+
+    </div>
+    <script>
+    	var app = angular.module('myapp',['firebase','ngDesktopNotification']);
+    	app.controller('myctrl',function($scope,$firebaseObject,$firebaseArray,desktopNotification){
+
+            var vm = this;   
+
+    		var ref = new Firebase("https://mytest-d3806.firebaseio.com/");
+			//var list = $firebase(ref).$asArray();
+    		var syncobj = $firebaseObject(ref);
+
+    		//syncobj.$bindTo($scope,"data");
+
+    		$scope.messages = $firebaseArray(ref);
+
+    		$scope.sk="sanjay";
+
+    		$scope.addMessage = function() {
+    			ref.remove();
+			    $scope.messages.$add({
+			      text: $scope.newMessageText,
+			      timestamp: Firebase.ServerValue.TIMESTAMP
+			    });
+  			};
+
+  			syncobj.$watch(function(event) {
+  				console.log(event);
+			});
+
+  			function showNotificationWithIcon() {
+	            var notif = desktopNotification.show('Notification with Icon', {
+	                icon: 'https://lh3.googleusercontent.com/-KqTbdksaRkE/AAAAAAAAAAI/AAAAAAAAAAA/avOrE0qpDDw/photo.jpg?sz=64',
+	                body: 'I have an icon!',
+	                autoClose: vm.autoClose
+	            });
+
+	            if (!notif) {
+	                alert('Desktop notification is either not supported or blocked.');
+	            }
+	        }
+
+  			requestPermission();
+  			showNotificationWithIcon();
+
+  			function requestPermission() {
+	            desktopNotification.requestPermission().then(function (permission) {
+	                vm.permission = permission;
+	                console.log('Permission: true');
+	            }, function (permission) {
+	                vm.permission = permission;
+
+	                if (vm.permission === 'denied') {
+	                    console.log('Requesting permission again when the user has once blocked' +
+	                     ' the notification is not possible');
+	                } else {
+	                    console.log('Permission: false');
+	                }
+
+	            });
+        	}
+    	});
+    </script>
+</body>
+</html>
